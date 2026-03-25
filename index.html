@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-
-<html class="light" lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Juicebox Play - The Ultimate Fruit Tier List</title>
+<!DOCTYPE html><html class="light" lang="sv"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Juicebox Play - Den Ultimata Frukt-topplistan</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
@@ -70,7 +68,7 @@
               "body": ["Be Vietnam Pro"],
               "label": ["Plus Jakarta Sans"]
             },
-            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            borderRadius: {"DEFAULT": "0.75rem", "lg": "1.5rem", "xl": "2.25rem", "full": "9999px"},
           },
         },
       }
@@ -80,317 +78,366 @@
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
       }
       .sticker-shadow {
-        box-shadow: 6px 6px 0px 0px rgba(26,26,26,1);
+        box-shadow: 4px 4px 0px 0px rgba(26,26,26,1);
       }
       .tier-row:hover {
-        transform: scale(1.002);
+        transform: scale(1.001);
       }
-      /* Redesigned Tooltips */
       .comic-bubble {
         position: absolute;
-        bottom: 110%;
+        bottom: 115%;
         left: 50%;
         transform: translateX(-50%) rotate(-1deg);
         background: #fffdf5;
-        border: 4px solid #1a1a1a;
-        border-radius: 1.5rem;
-        padding: 1.5rem;
-        width: clamp(300px, 80vw, 450px); /* Larger and responsive */
+        border: 3px solid #1a1a1a;
+        border-radius: 1.25rem;
+        padding: 1.25rem;
+        width: 320px;
         z-index: 50;
-        box-shadow: 12px 12px 0px 0px rgba(26,26,26,0.15);
+        box-shadow: 8px 8px 0px 0px rgba(26,26,26,0.1);
         display: none;
         pointer-events: none;
       }
       .group:hover .comic-bubble {
         display: block;
-        animation: bubble-pop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        animation: bubble-pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       }
       @keyframes bubble-pop {
-        from { opacity: 0; transform: translateX(-50%) scale(0.9) rotate(2deg); }
+        from { opacity: 0; transform: translateX(-50%) scale(0.95) rotate(1deg); }
         to { opacity: 1; transform: translateX(-50%) scale(1) rotate(-1deg); }
       }
       .comic-bubble::after {
         content: '';
         position: absolute;
-        bottom: -16px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 0;
-        height: 0;
-        border-left: 12px solid transparent;
-        border-right: 12px solid transparent;
-        border-top: 16px solid #1a1a1a;
-      }
-      .comic-bubble::before {
-        content: '';
-        position: absolute;
-        bottom: -10px;
+        bottom: -12px;
         left: 50%;
         transform: translateX(-50%);
         width: 0;
         height: 0;
         border-left: 10px solid transparent;
         border-right: 10px solid transparent;
-        border-top: 14px solid #fffdf5;
+        border-top: 12px solid #1a1a1a;
+      }
+      .comic-bubble::before {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-top: 10px solid #fffdf5;
         z-index: 1;
       }
       .wobble-shape {
-        border-radius: 2.2rem 2.8rem 2.4rem 2.6rem;
+        border-radius: 1.8rem 2.2rem 2rem 2.1rem;
       }
     </style>
 </head>
 <body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container">
-<main class="pt-16 pb-16 px-4 max-w-7xl mx-auto min-h-screen">
+<main class="pt-12 pb-16 px-6 max-w-6xl mx-auto min-h-screen">
 <!-- Hero Section -->
-<section class="mb-16 text-center flex flex-col items-center">
-<div class="bg-primary-container inline-block px-8 py-3 rounded-full border-4 border-primary sticker-shadow -rotate-2 mb-8">
-<span class="font-headline font-extrabold text-primary text-2xl uppercase tracking-widest">Fruktpolis.se</span>
+<section class="mb-12 text-center flex flex-col items-center">
+<div class="bg-primary-container inline-block px-6 py-2 rounded-full border-2 border-primary sticker-shadow -rotate-1 mb-6">
+<span class="font-headline font-extrabold text-primary text-lg uppercase tracking-widest" style="">Fruktpolis</span>
 </div>
-<h1 class="font-headline font-black text-6xl md:text-8xl text-on-surface mb-6 tracking-tight">Den ultimata <span class="text-primary underline decoration-[12px] decoration-primary-container">fruktpolis</span> rankinglistan</h1>
-<p class="text-2xl text-on-surface-variant max-w-3xl font-medium">Rankat av Gustav Tage Wahlberg, den sanna fruktpolisen!</p>
+<h1 class="font-headline font-black text-5xl md:text-7xl text-on-surface mb-4 tracking-tight" style="">Den&nbsp;<span class="text-primary underline decoration-[8px] decoration-primary-container" style="">objektiva</span>&nbsp;fruktlistan</h1>
+<p class="text-xl text-on-surface-variant max-w-2xl font-medium" style=""></p><p data-start="0" data-end="67" class="" style="">Rankat utifrån fakta och vetenskapliga formler som:&nbsp;(smak x volym) / arbetsinsats</p>
+<p data-start="69" data-end="102" class="" style=""><br></p><p class="" style=""></p>
 </section>
 <!-- Tier List Container -->
-<div class="space-y-8">
+<div class="space-y-6">
 <!-- TIER S -->
-<div class="flex flex-col md:flex-row gap-6 tier-row transition-transform duration-200">
-<div class="w-full md:w-40 h-32 md:h-auto flex items-center justify-center bg-error-container border-4 border-[#1a1a1a] rounded-2xl sticker-shadow shrink-0">
-<span class="font-headline font-black text-7xl text-[#1a1a1a]">S</span>
+<div class="flex flex-col md:flex-row gap-4 tier-row transition-transform duration-200">
+<div class="w-full md:w-32 h-24 md:h-auto flex items-center justify-center bg-error-container border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+<span class="font-headline font-black text-6xl text-[#1a1a1a]" style="">S</span>
 </div>
-<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-2xl sticker-shadow p-6 flex flex-wrap gap-6 items-center">
-<!-- Mango -->
+<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-4 flex flex-wrap gap-4 items-center">
+<!-- Vindruvor -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-primary uppercase text-xl mb-2">Tropical Royalty</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">The king of vibes. Literally sunshine in fruit form. If a mango doesn't make you happy, check your pulse!</p>
+<h4 class="font-headline font-black text-primary uppercase text-lg mb-1" style="">Fruktens drottning</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Små, söta pärlor av ren glädje. Den ultimata snack-upplevelsen som aldrig slår fel.</p>
 </div>
-<div class="flex flex-col items-center bg-secondary-container border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-6">
-<span class="text-7xl mb-2">🥭</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Mango</span>
+<div class="flex flex-col items-center bg-tertiary-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-3">
+<span class="text-5xl mb-1" style="">🍇</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Vindruvor</span>
 </div>
 </div>
-<!-- Strawberry -->
+<!-- Vattenmelon -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-error uppercase text-xl mb-2">Sweetheart</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Perfectly cute and dangerously sweet. It's basically nature's candy with better branding. 10/10 snack experience.</p>
+<h4 class="font-headline font-black text-error uppercase text-lg mb-1" style="">Fruktens gud</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Den ultimata sommarhjälten. Hydrering i sin vackraste och godaste form.</p>
 </div>
-<div class="flex flex-col items-center bg-error-container border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:-rotate-3">
-<span class="text-7xl mb-2">🍓</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Berry</span>
-</div>
-</div>
-<!-- Pineapple -->
-<div class="relative group cursor-pointer">
-<div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-secondary uppercase text-xl mb-2">Crown Holder</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Wearing a crown because it knows it's the best. Spiky on the outside, a party on the inside. Essential for pizza (fight me).</p>
-</div>
-<div class="flex flex-col items-center bg-[#ffea00] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-12">
-<span class="text-7xl mb-2">🍍</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Ananas</span>
+<div class="flex flex-col items-center bg-error-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-3">
+<span class="text-5xl mb-1" style="">🍉</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Vattenmelon</span>
 </div>
 </div>
 </div>
 </div>
 <!-- TIER A -->
-<div class="flex flex-col md:flex-row gap-6 tier-row transition-transform duration-200">
-<div class="w-full md:w-40 h-32 md:h-auto flex items-center justify-center bg-secondary-container border-4 border-[#1a1a1a] rounded-2xl sticker-shadow shrink-0">
-<span class="font-headline font-black text-7xl text-[#1a1a1a]">A</span>
+<div class="flex flex-col md:flex-row gap-4 tier-row transition-transform duration-200">
+<div class="w-full md:w-32 h-24 md:h-auto flex items-center justify-center bg-secondary-container border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+<span class="font-headline font-black text-6xl text-[#1a1a1a]" style="">A</span>
 </div>
-<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-2xl sticker-shadow p-6 flex flex-wrap gap-6 items-center">
+<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-4 flex flex-wrap gap-4 items-center">
+<!-- Banan -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-tertiary-dim uppercase text-xl mb-2">Nature's Beads</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Small, sweet pearls of joy. They're like little juice bombs waiting to explode. The ultimate low-effort snack.</p>
+<h4 class="font-headline font-black text-[#fbc02d] uppercase text-lg mb-1" style="">Stabil</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Alltid där när man behöver den. Praktisk, näringsrik och ikoniskt gul.</p>
 </div>
-<div class="flex flex-col items-center bg-tertiary-container border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-2">
-<span class="text-7xl mb-2">🍇</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Grapes</span>
+<div class="flex flex-col items-center bg-[#fff176] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-2">
+<span class="text-5xl mb-1" style="">🍌</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Banan</span>
 </div>
 </div>
+<!-- Körsbär -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-error uppercase text-xl mb-2">Summer Hero</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">The hydration station! Best enjoyed at a picnic while wearing sunglasses. 92% water, 100% vibes.</p>
+<h4 class="font-headline font-black text-error uppercase text-lg mb-1" style="">Värt magbesväret</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Lite för goda för sitt eget bästa. Lyxig topping till allt livets goda.</p>
 </div>
-<div class="flex flex-col items-center bg-[#ff6b6b] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:-rotate-3">
-<span class="text-7xl mb-2">🍉</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Melon</span>
+<div class="flex flex-col items-center bg-[#ff4d4d] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-4">
+<span class="text-5xl mb-1" style="">🍒</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Körsbär</span>
 </div>
 </div>
+<!-- Kiwi -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-error-dim uppercase text-xl mb-2">The Topping</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">The ultimate topping for everything good. Pie? Yes. Sundae? Yes. Your ear because they come in pairs? Absolutely.</p>
+<h4 class="font-headline font-black text-primary-fixed-dim uppercase text-lg mb-1" style="">Den underskattade</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Hårig på utsidan, en visuell fest på insidan. Fullproppad med sting.</p>
 </div>
-<div class="flex flex-col items-center bg-[#ff4d4d] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-6">
-<span class="text-7xl mb-2">🍒</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Cherry</span>
+<div class="flex flex-col items-center bg-[#c5e1a5] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-6">
+<span class="text-5xl mb-1" style="">🥝</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Kiwi</span>
+</div>
+</div>
+<!-- Citrus Mix -->
+<div class="relative group cursor-pointer">
+<div class="comic-bubble wobble-shape">
+<h4 class="font-headline font-black text-secondary-dim uppercase text-lg mb-1" style="">Tre som blir en</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Småsyskonen till apelsinen som faktiskt går att äta utan ett storköksprojekt.</p>
+</div>
+<div class="flex flex-col items-center bg-secondary-fixed border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-2">
+<span class="text-5xl mb-1" style="">🍊</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center leading-tight" style="">Clementin</span>
+</div>
+</div>
+<!-- Mango -->
+<div class="relative group cursor-pointer">
+<div class="comic-bubble wobble-shape">
+<h4 class="font-headline font-black text-primary uppercase text-lg mb-1" style="">God</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Tropisk kunglighet. Svår att skära men belöningen är ren solsken.</p>
+</div>
+<div class="flex flex-col items-center bg-secondary-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-4">
+<span class="text-5xl mb-1" style="">🥭</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Mango</span>
+</div>
+</div>
+<!-- Honungsmelon -->
+<div class="relative group cursor-pointer">
+<div class="comic-bubble wobble-shape">
+<h4 class="font-headline font-black text-primary-dim uppercase text-lg mb-1" style="">Den blekare kusinen</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">En subtil men välkommen gäst på frukostbuffén. Mild och elegant.</p>
+</div>
+<div class="flex flex-col items-center bg-[#e8f5e9] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-1">
+<span class="text-5xl mb-1" style="">🍈</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">H.melon</span>
 </div>
 </div>
 </div>
 </div>
 <!-- TIER B -->
-<div class="flex flex-col md:flex-row gap-6 tier-row transition-transform duration-200">
-<div class="w-full md:w-40 h-32 md:h-auto flex items-center justify-center bg-primary-container border-4 border-[#1a1a1a] rounded-2xl sticker-shadow shrink-0">
-<span class="font-headline font-black text-7xl text-[#1a1a1a]">B</span>
+<div class="flex flex-col md:flex-row gap-4 tier-row transition-transform duration-200">
+<div class="w-full md:w-32 h-24 md:h-auto flex items-center justify-center bg-primary-container border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+<span class="font-headline font-black text-6xl text-[#1a1a1a]" style="">B</span>
 </div>
-<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-2xl sticker-shadow p-6 flex flex-wrap gap-6 items-center">
+<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-4 flex flex-wrap gap-4 items-center">
+<!-- Stenfrukter -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-primary-dim uppercase text-xl mb-2">The Reliable</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Dependable. Like a good friend who always brings extra notes to class. Keeps the doctor away, allegedly.</p>
+<h4 class="font-headline font-black text-secondary uppercase text-lg mb-1" style="">Hårig, hårig, flint</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">En trio av saftig förvirring. Goda när de är precis lagom mogna i 12 sekunder.</p>
 </div>
-<div class="flex flex-col items-center bg-[#8bc34a] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:-rotate-1">
-<span class="text-7xl mb-2">🍏</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Apple</span>
+<div class="flex flex-col items-center bg-secondary-fixed border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-2">
+<span class="text-5xl mb-1" style="">🍑</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Nektarin</span>
 </div>
 </div>
+<!-- Passionsfrukt -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-secondary uppercase text-xl mb-2">Fuzzy Friend</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">A bit too fuzzy sometimes, like a tiny fruit sweater. But that first juicy bite is always worth the texture issues.</p>
+<h4 class="font-headline font-black text-tertiary-dim uppercase text-lg mb-1" style="">För lite för mödan</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Fantastisk smak, men man får kämpa för varje liten droppe. Mycket skal, lite frukt.</p>
 </div>
-<div class="flex flex-col items-center bg-secondary-fixed border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-3">
-<span class="text-7xl mb-2">🍑</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Peach</span>
+<div class="flex flex-col items-center bg-tertiary-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-3">
+<span class="text-5xl mb-1" style="">🟣</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Passion</span>
 </div>
 </div>
+<!-- Granatäpple -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-[#fbc02d] uppercase text-xl mb-2">Yellow Icon</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Comes in its own biodegradable wrapper. Iconic shape, great for Mario Kart, even better for potassium.</p>
+<h4 class="font-headline font-black text-error-dim uppercase text-lg mb-1" style="">Utsökt projekt</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Ett projekt som kräver skyddsutrustning, men resultatet är juveler av ren smak.</p>
 </div>
-<div class="flex flex-col items-center bg-[#fff176] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-6">
-<span class="text-7xl mb-2">🍌</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Banana</span>
+<div class="flex flex-col items-center bg-error-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-4">
+<span class="text-5xl mb-1" style="">🍎</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center leading-tight" style="">Granatäpple</span>
 </div>
 </div>
 </div>
 </div>
 <!-- TIER C -->
-<div class="flex flex-col md:flex-row gap-6 tier-row transition-transform duration-200">
-<div class="w-full md:w-40 h-32 md:h-auto flex items-center justify-center bg-surface-container-highest border-4 border-[#1a1a1a] rounded-2xl sticker-shadow shrink-0">
-<span class="font-headline font-black text-7xl text-[#1a1a1a]">C</span>
+<div class="flex flex-col md:flex-row gap-4 tier-row transition-transform duration-200">
+<div class="w-full md:w-32 h-24 md:h-auto flex items-center justify-center bg-surface-container-highest border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+<span class="font-headline font-black text-6xl text-[#1a1a1a]" style="">C</span>
 </div>
-<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-2xl sticker-shadow p-6 flex flex-wrap gap-6 items-center">
+<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-4 flex flex-wrap gap-4 items-center">
+<!-- Äpple -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-primary-fixed-dim uppercase text-xl mb-2">Furry Potato</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">The furry potato of the fruit world. High effort to peel, but visually stunning on a fruit tart.</p>
+<h4 class="font-headline font-black text-primary-dim uppercase text-lg mb-1" style="">Väldigt väldigt beige</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Basfrukten. Den gör sitt jobb, men den vinner inga priser för kreativitet.</p>
 </div>
-<div class="flex flex-col items-center bg-[#c5e1a5] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-1">
-<span class="text-7xl mb-2">🥝</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Kiwi</span>
+<div class="flex flex-col items-center bg-[#8bc34a] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-2">
+<span class="text-5xl mb-1" style="">🍏</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Äpple</span>
 </div>
 </div>
+<!-- Päron -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-outline uppercase text-xl mb-2">The Understudy</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">The apple's softer, less exciting cousin. Often forgotten but surprisingly good when perfectly ripe (which lasts 4 minutes).</p>
+<h4 class="font-headline font-black text-outline uppercase text-lg mb-1" style="">På gränsen till svek</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Svårt att pricka mognaden. Ena sekunden stenhårt, nästa sekund en mosig pöl.</p>
 </div>
-<div class="flex flex-col items-center bg-surface-container border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:-rotate-2">
-<span class="text-7xl mb-2">🍐</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Pear</span>
+<div class="flex flex-col items-center bg-surface-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-3">
+<span class="text-5xl mb-1" style="">🍐</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Päron</span>
 </div>
 </div>
+<!-- Grapefrukt -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-secondary-dim uppercase text-xl mb-2">Överskattat oranget skräp</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">
-                            Nej tack, arbetsinsatsen är fullständigt orimlig i förhållande till belöningen. Den är god, absolut, men inte tillräckligt. Den ska skalas (det är ingen lek, det är som att någon har limmat dit skalet med alienlim), den kladdar, och ändå sitter det där vita kvar över hela frukten. Där någonstans slänger jag apelsinen i matavfallet.
-</p>
-
-
-
+<h4 class="font-headline font-black text-secondary-dim uppercase text-lg mb-1" style="">Bantningskur</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Beskt och utmanande. Kräver ofta socker för att vara ens i närheten av en njutning.</p>
 </div>
-<div class="flex flex-col items-center bg-[#ffb74d] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-4">
-<span class="text-7xl mb-2">🍊</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Apelsin</span>
+<div class="flex flex-col items-center bg-[#ffccbc] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-5">
+<span class="text-5xl mb-1" style="">🍊</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Grape</span>
 </div>
 </div>
 </div>
 </div>
 <!-- TIER D -->
-<div class="flex flex-col md:flex-row gap-6 tier-row transition-transform duration-200">
-<div class="w-full md:w-40 h-32 md:h-auto flex items-center justify-center bg-outline-variant border-4 border-[#1a1a1a] rounded-2xl sticker-shadow shrink-0">
-<span class="font-headline font-black text-7xl text-[#1a1a1a]">D</span>
+<div class="flex flex-col md:flex-row gap-4 tier-row transition-transform duration-200">
+<div class="w-full md:w-32 h-24 md:h-auto flex items-center justify-center bg-outline-variant border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+<span class="font-headline font-black text-6xl text-[#1a1a1a]" style="">D</span>
 </div>
-<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-2xl sticker-shadow p-6 flex flex-wrap gap-6 items-center">
+<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-4 flex flex-wrap gap-4 items-center">
+<!-- Ananas -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-[#d4af37] uppercase text-xl mb-2">The Zester</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Great for a zest, but try eating it whole. I double dare you. Best used as a garnish or a cleaning supply.</p>
+<h4 class="font-headline font-black text-secondary uppercase text-lg mb-1" style="">Frukten som går till angrepp</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Den bokstavligen äter upp dig medan du äter den. Aggressiv men har sin plats på pizza.</p>
 </div>
-<div class="flex flex-col items-center bg-[#fff59d] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-8">
-<span class="text-7xl mb-2">🍋</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Lemon</span>
+<div class="flex flex-col items-center bg-[#ffea00] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-12">
+<span class="text-5xl mb-1" style="">🍍</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Ananas</span>
 </div>
 </div>
+</div>
+</div>
+<!-- TIER E -->
+<div class="flex flex-col md:flex-row gap-4 tier-row transition-transform duration-200">
+<div class="w-full md:w-32 h-24 md:h-auto flex items-center justify-center bg-surface-variant border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+<span class="font-headline font-black text-6xl text-[#1a1a1a]" style="">E</span>
+</div>
+<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-4 flex flex-wrap gap-4 items-center">
+<!-- Kokosnöt -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-error uppercase text-xl mb-2">Tooth Box</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Basically a box of delicious, high-maintenance teeth. You need a hammer, a drill, and a tuxedo to open one properly.</p>
+<h4 class="font-headline font-black text-on-surface-variant uppercase text-lg mb-1" style="">Hämta verktygen</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Kräver hammare, spett och en helgkurs för att öppna. Belöningen? Lite torrt vitt kött.</p>
 </div>
-<div class="flex flex-col items-center bg-[#e57373] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:-rotate-3">
-<span class="text-7xl mb-2">🍎</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Granat</span>
+<div class="flex flex-col items-center bg-surface-container-high border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-3">
+<span class="text-5xl mb-1" style="">🥥</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Kokosnöt</span>
+</div>
+</div>
+<!-- Plommon -->
+<div class="relative group cursor-pointer">
+<div class="comic-bubble wobble-shape">
+<h4 class="font-headline font-black text-tertiary-dim uppercase text-lg mb-1" style="">Helt ok</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Bäst i paj eller marmelad. Som färsk frukt är den mest bara... där.</p>
+</div>
+<div class="flex flex-col items-center bg-tertiary-fixed-dim border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-4">
+<span class="text-5xl mb-1" style="">🍑</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Plommon</span>
 </div>
 </div>
 </div>
 </div>
 <!-- TIER F -->
-<div class="flex flex-col md:flex-row gap-6 tier-row transition-transform duration-200">
-<div class="w-full md:w-40 h-32 md:h-auto flex items-center justify-center bg-inverse-surface border-4 border-[#1a1a1a] rounded-2xl sticker-shadow shrink-0">
-<span class="font-headline font-black text-7xl text-[#f8f6f5]">F</span>
+<div class="flex flex-col md:flex-row gap-4 tier-row transition-transform duration-200">
+<div class="w-full md:w-32 h-24 md:h-auto flex items-center justify-center bg-inverse-surface border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+<span class="font-headline font-black text-6xl text-[#f8f6f5]" style="">F</span>
 </div>
-<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-2xl sticker-shadow p-6 flex flex-wrap gap-6 items-center">
+<div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-4 flex flex-wrap gap-4 items-center">
+<!-- Apelsin -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-primary-fixed uppercase text-xl mb-2">The Stink</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Tastes like heaven, smells like... a sweaty gym sock in a sauna. Prohibited in most indoor spaces for a reason.</p>
+<h4 class="font-headline font-black text-secondary-dim uppercase text-lg mb-1" style="">Den överskattade</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">Arbetsinsatsen är orimlig i förhållande till belöningen. Kladdigt, vitt ludd och allmänt meck.</p>
 </div>
-<div class="flex flex-col items-center bg-[#dce775] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:rotate-12">
-<span class="text-7xl mb-2">🍈</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Durian</span>
+<div class="flex flex-col items-center bg-[#ffb74d] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:rotate-4">
+<span class="text-5xl mb-1" style="">🍊</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Apelsin</span>
 </div>
 </div>
+<!-- Physalis -->
 <div class="relative group cursor-pointer">
 <div class="comic-bubble wobble-shape">
-<h4 class="font-headline font-black text-error uppercase text-xl mb-2">Identity Crisis</h4>
-<p class="text-on-surface text-base leading-relaxed font-medium">Stop pretending you're a fruit snack. You belong in a salad or a sauce. Get out of the fruit bowl, you're confusing the children.</p>
+<h4 class="font-headline font-black text-secondary uppercase text-lg mb-1" style="">Vad är det ens?</h4>
+<p class="text-on-surface text-sm leading-relaxed font-medium" style="">En garnityr-frukt som ingen egentligen bett om. Klibbig och förvirrad i sin papperslykta.</p>
 </div>
-<div class="flex flex-col items-center bg-[#ef5350] border-4 border-[#1a1a1a] rounded-[2.5rem] p-5 w-36 transition-all group-hover:-translate-y-4 group-hover:-rotate-12">
-<span class="text-7xl mb-2">🍅</span>
-<span class="font-headline font-black text-sm uppercase text-[#1a1a1a]">Tomato</span>
-</div>
-</div>
+<div class="flex flex-col items-center bg-[#ffd54f] border-2 border-[#1a1a1a] rounded-3xl p-3 w-28 transition-all group-hover:-translate-y-2 group-hover:-rotate-8">
+<span class="text-5xl mb-1" style="">🌕</span>
+<span class="font-headline font-bold text-[10px] uppercase text-[#1a1a1a] text-center" style="">Physalis</span>
 </div>
 </div>
 </div>
-<!-- Bento Style Stats/Fun Facts -->
-<section class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-<div class="md:col-span-2 bg-tertiary-container border-4 border-[#1a1a1a] rounded-2xl p-10 sticker-shadow flex flex-col justify-between">
+</div>
+</div>
+<!-- Stats Section -->
+<section class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="md:col-span-2 bg-tertiary-container border-4 border-[#1a1a1a] rounded-xl p-8 sticker-shadow flex flex-col justify-between">
 <div>
-<h3 class="font-headline font-black text-4xl mb-6 uppercase italic">Daily Fruity Logic</h3>
-<p class="text-2xl font-bold text-on-tertiary-container mb-8 italic leading-snug">"A strawberry isn't actually a berry, but a banana is. Biology is confusing, let's just eat them."</p>
+<h3 class="font-headline font-black text-3xl mb-4 uppercase italic" style="">Dagligt fruktcitat</h3>
+<p class="text-xl font-bold text-on-tertiary-container mb-6 italic leading-snug" style="">"Jordgubbar är egentligen inga bär, men bananer är det. Biologi är förvirrande, låt oss bara äta dem."<div><br></div><div>-Anis Don Demina</div></p>
 </div>
-<div class="flex gap-6">
-<div class="bg-surface-container-lowest p-6 rounded-2xl border-4 border-[#1a1a1a] sticker-shadow">
-<span class="block font-headline font-black text-3xl">4.9/5</span>
-<span class="text-sm font-bold uppercase tracking-widest opacity-70">User Rating</span>
+<div class="flex gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-xl border-4 border-[#1a1a1a] sticker-shadow">
+<span class="block font-headline font-black text-2xl" style="">Icke godkänt!</span>
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-70" style="">betyg bärpris i matbutiker</span>
 </div>
-<div class="bg-surface-container-lowest p-6 rounded-2xl border-4 border-[#1a1a1a] sticker-shadow">
-<span class="block font-headline font-black text-3xl">100%</span>
-<span class="text-sm font-bold uppercase tracking-widest opacity-70">Freshness</span>
+<div class="bg-surface-container-lowest p-4 rounded-xl border-4 border-[#1a1a1a] sticker-shadow">
+<span class="block font-headline font-black text-2xl" style="">100%</span>
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-70" style="">1337</span>
 </div>
 </div>
 </div>
-<div class="bg-primary-container border-4 border-[#1a1a1a] rounded-2xl p-10 sticker-shadow flex flex-col items-center justify-center text-center">
-<span class="text-8xl mb-6">🏆</span>
-<h3 class="font-headline font-black text-3xl mb-3 uppercase">MVP FRUIT</h3>
-<p class="font-bold text-on-primary-container text-lg">Mango wins for the 4th week in a row!</p>
-<button class="mt-8 bg-primary text-on-primary px-10 py-4 rounded-full font-headline font-black text-lg uppercase sticker-shadow hover:translate-y-1 transition-all">Vote Now</button>
+<div class="bg-primary-container border-4 border-[#1a1a1a] rounded-xl p-8 sticker-shadow flex flex-col items-center justify-center text-center">
+<span class="text-7xl mb-4" style="">🏆</span>
+<h3 class="font-headline font-black text-2xl mb-2 uppercase" style="">MVP FRUKT</h3>
+<p class="font-bold text-on-primary-container text-md" style="">Vattenmelon vinner denna veckan!</p>
+<button class="mt-6 bg-primary text-on-primary px-8 py-3 rounded-full font-headline font-black text-md uppercase sticker-shadow hover:translate-y-1 transition-all" style="">Snart kan du röst, denna knapp gör inte ett skit just nu</button>
 </div>
 </section>
 </main>
