@@ -148,7 +148,7 @@
       z-index: 1;
     }
 
-    @keyframes bubble-pop {
+    @keyframes bubble-pop-desktop {
       from {
         opacity: 0;
         transform: translateX(-50%) scale(0.9) rotate(1deg);
@@ -159,60 +159,59 @@
       }
     }
 
+    @keyframes bubble-pop-mobile {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9) rotate(1deg);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) rotate(-1deg);
+      }
+    }
+
     /* Desktop: hover */
     @media (hover: hover) and (pointer: fine) {
       .fruit-card:hover .comic-bubble {
         display: block;
-        animation: bubble-pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        animation: bubble-pop-desktop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       }
     }
 
     /* Touch: klick */
     .fruit-card.is-open .comic-bubble {
       display: block;
-      animation: bubble-pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    /* Mobil: centrera bubblan i hela skärmen */
+    /* Mobil: behåll pratbubbla men centrera den i viewporten */
     @media (max-width: 767px) {
       .fruit-card.is-open .comic-bubble {
         position: fixed;
-        left: 50% !important;
         top: 50%;
+        left: 50%;
         bottom: auto;
-        transform: translate(-50%, -50%) rotate(-1deg) !important;
         width: min(320px, calc(100vw - 24px));
         max-width: calc(100vw - 24px);
         max-height: calc(100vh - 32px);
         overflow-y: auto;
+        transform: translate(-50%, -50%) rotate(-1deg);
         z-index: 9999;
         pointer-events: auto;
+        animation: bubble-pop-mobile 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       }
 
+      /* Dölj svansen på mobil när bubblan ligger mitt på skärmen */
       .fruit-card.is-open .comic-bubble::after,
       .fruit-card.is-open .comic-bubble::before {
         display: none;
-      }
-
-      .mobile-bubble-backdrop {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.18);
-        z-index: 9998;
-      }
-
-      .mobile-bubble-backdrop.is-visible {
-        display: block;
       }
     }
   </style>
 </head>
 
 <body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container">
-  <div class="mobile-bubble-backdrop" id="mobileBubbleBackdrop"></div>
-
   <main class="pt-8 md:pt-12 pb-16 px-4 md:px-6 max-w-6xl mx-auto min-h-screen">
+
     <section class="mb-10 md:mb-12 text-center flex flex-col items-center">
       <div class="bg-primary-container inline-block px-4 py-1.5 md:px-6 md:py-2 rounded-full border-2 border-primary sticker-shadow -rotate-1 mb-4 md:mb-6">
         <span class="font-headline font-extrabold text-primary text-sm md:text-lg uppercase tracking-widest">Fruktpolis</span>
@@ -535,15 +534,12 @@
 
   <script>
     const fruitCards = document.querySelectorAll('.fruit-card');
-    const backdrop = document.getElementById('mobileBubbleBackdrop');
     const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
     function closeAllBubbles() {
       fruitCards.forEach(card => {
         card.classList.remove('is-open');
       });
-      backdrop.classList.remove('is-visible');
-      document.body.style.overflow = '';
     }
 
     if (isTouchDevice) {
@@ -556,22 +552,14 @@
 
           if (!wasOpen) {
             card.classList.add('is-open');
-            backdrop.classList.add('is-visible');
-            document.body.style.overflow = 'hidden';
           }
         });
       });
 
-      backdrop.addEventListener('click', closeAllBubbles);
-      document.addEventListener('click', closeAllBubbles);
-    }
-
-    window.addEventListener('resize', function () {
-      if (!isTouchDevice) return;
-      if (window.innerWidth > 767) {
+      document.addEventListener('click', function () {
         closeAllBubbles();
-      }
-    });
+      });
+    }
   </script>
 </body>
 </html>
