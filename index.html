@@ -227,6 +227,30 @@
       </p>
     </section>
 
+
+    <section class="mb-8 flex flex-col items-center gap-4">
+      <div class="inline-flex rounded-full border-4 border-[#1a1a1a] sticker-shadow overflow-hidden">
+        <button id="objective-view-btn" class="px-5 py-2 font-headline font-black bg-primary text-on-primary">Objektiv vy</button>
+        <button id="people-view-btn" class="px-5 py-2 font-headline font-black bg-surface-container-lowest">Folkets vy</button>
+      </div>
+    </section>
+
+    <section id="people-view" class="hidden mb-10">
+      <div class="max-w-3xl mx-auto bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl p-5 md:p-7 sticker-shadow">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+          <h2 class="font-headline font-black text-2xl md:text-3xl">Folkets vy</h2>
+          <button id="confirm-ranking" class="bg-primary text-on-primary px-6 py-3 rounded-full font-headline font-black uppercase sticker-shadow hover:translate-y-1 active:translate-y-1 transition-all">Bekräfta</button>
+        </div>
+        <p class="text-on-surface-variant font-medium mb-4">Dra frukterna upp eller ner för att ranka dem. Den här vyn är enbart till för sortering.</p>
+        <ol id="people-ranking-list" class="space-y-2"></ol>
+        <div class="mt-6 p-4 bg-surface-container border-2 border-[#1a1a1a] rounded-xl">
+          <h3 class="font-headline font-bold text-lg">Nuvarande folk-snitt</h3>
+          <p id="people-average-summary" class="text-sm text-on-surface-variant mt-1">Inga röster sparade ännu.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="objective-view">
     <div class="space-y-4 md:space-y-6">
       <!-- TIER S -->
       <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
@@ -500,6 +524,7 @@
         </div>
       </div>
     </div>
+    </section>
 
     <section class="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="md:col-span-2 bg-tertiary-container border-4 border-[#1a1a1a] rounded-xl p-6 md:p-8 sticker-shadow flex flex-col justify-between">
@@ -540,29 +565,108 @@
     const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
     function closeAllBubbles() {
-      fruitCards.forEach(card => {
-        card.classList.remove('is-open');
-      });
+      fruitCards.forEach(card => card.classList.remove('is-open'));
     }
 
     if (isTouchDevice) {
       fruitCards.forEach(card => {
         card.addEventListener('click', function (e) {
           e.stopPropagation();
-
           const wasOpen = card.classList.contains('is-open');
           closeAllBubbles();
-
-          if (!wasOpen) {
-            card.classList.add('is-open');
-          }
+          if (!wasOpen) card.classList.add('is-open');
         });
       });
+      document.addEventListener('click', closeAllBubbles);
+    }
 
-      document.addEventListener('click', function () {
-        closeAllBubbles();
+    const objectiveView = document.getElementById('objective-view');
+    const peopleView = document.getElementById('people-view');
+    const objectiveViewBtn = document.getElementById('objective-view-btn');
+    const peopleViewBtn = document.getElementById('people-view-btn');
+    const rankingList = document.getElementById('people-ranking-list');
+    const confirmRankingBtn = document.getElementById('confirm-ranking');
+    const peopleAverageSummary = document.getElementById('people-average-summary');
+
+    const fruits = [
+      ['Vindruvor', '🍇'], ['Vattenmelon', '🍉'], ['Banan', '🍌'], ['Körsbär', '🍒'], ['Kiwi', '🥝'],
+      ['Mandarin Clementin Satsuma', '🍊'], ['Mango', '🥭'], ['Honungsmelon', '🍈'], ['Aprikos Persika Nektarin', '🍑'],
+      ['Passionsfrukt', '🟣'], ['Granatäpple', '💣'], ['Äpple', '🍏'], ['Päron', '🍐'], ['Grapefrukt', '🍊'],
+      ['Ananas', '🍍'], ['Kokosnöt', '🥥'], ['Plommon', '🍑'], ['Apelsin', '🍊'], ['Physalis', '?']
+    ];
+
+    function setView(view) {
+      const people = view === 'people';
+      peopleView.classList.toggle('hidden', !people);
+      objectiveView.classList.toggle('hidden', people);
+      objectiveViewBtn.className = `px-5 py-2 font-headline font-black ${people ? 'bg-surface-container-lowest' : 'bg-primary text-on-primary'}`;
+      peopleViewBtn.className = `px-5 py-2 font-headline font-black ${people ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest'}`;
+      closeAllBubbles();
+    }
+
+    function buildList(items) {
+      rankingList.innerHTML = '';
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.draggable = true;
+        li.dataset.name = item[0];
+        li.dataset.emoji = item[1];
+        li.className = 'bg-white border-2 border-[#1a1a1a] rounded-xl p-3 flex items-center justify-between cursor-move';
+        li.innerHTML = `<span class="font-bold">${item[1]} ${item[0]}</span><span class="text-xs uppercase font-black tracking-widest">Dra</span>`;
+        rankingList.appendChild(li);
       });
     }
+
+    let dragged = null;
+    rankingList.addEventListener('dragstart', (e) => { dragged = e.target.closest('li'); });
+    rankingList.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const after = [...rankingList.querySelectorAll('li')].find(li => e.clientY <= li.getBoundingClientRect().top + li.offsetHeight / 2);
+      if (!dragged) return;
+      if (!after) rankingList.appendChild(dragged);
+      else if (after !== dragged) rankingList.insertBefore(dragged, after);
+    });
+
+    function currentOrder() {
+      return [...rankingList.querySelectorAll('li')].map(li => li.dataset.name);
+    }
+
+    function getVotes() {
+      return JSON.parse(localStorage.getItem('fruitVotes') || '[]');
+    }
+
+    function renderAverage() {
+      const votes = getVotes();
+      if (!votes.length) {
+        peopleAverageSummary.textContent = 'Inga röster sparade ännu.';
+        return;
+      }
+      const totals = Object.fromEntries(fruits.map(([name]) => [name, { sum: 0, count: 0 }]));
+      votes.forEach(vote => vote.forEach((name, idx) => { if (totals[name]) { totals[name].sum += idx + 1; totals[name].count += 1; } }));
+      const avg = Object.entries(totals).map(([name, data]) => ({ name, avg: data.sum / data.count })).sort((a, b) => a.avg - b.avg);
+      peopleAverageSummary.textContent = `Baserat på ${votes.length} röster. Topp 3 just nu: ${avg.slice(0, 3).map(item => item.name).join(', ')}.`;
+    }
+
+    confirmRankingBtn.addEventListener('click', async () => {
+      const votes = getVotes();
+      const vote = currentOrder();
+      votes.push(vote);
+      localStorage.setItem('fruitVotes', JSON.stringify(votes));
+
+      // Om ni vill spara globalt kan ni lägga en enkel endpoint här, t.ex. Cloudflare Worker / Supabase / GitHub Action webhook.
+      // await fetch('https://example.com/api/votes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({vote}) });
+
+      renderAverage();
+      confirmRankingBtn.textContent = 'Sparat!';
+      setTimeout(() => confirmRankingBtn.textContent = 'Bekräfta', 1200);
+    });
+
+    objectiveViewBtn.addEventListener('click', () => setView('objective'));
+    peopleViewBtn.addEventListener('click', () => setView('people'));
+
+    buildList(fruits);
+    renderAverage();
+    setView('objective');
   </script>
 </body>
 </html>
