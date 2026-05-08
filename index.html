@@ -236,13 +236,36 @@
     </section>
 
     <section id="people-view" class="hidden mb-10">
-      <div class="max-w-3xl mx-auto bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl p-5 md:p-7 sticker-shadow">
+      <div class="max-w-5xl mx-auto bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl p-5 md:p-7 sticker-shadow">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-          <h2 class="font-headline font-black text-2xl md:text-3xl">Folkets vy</h2>
+          <h2 id="people-view-title" class="font-headline font-black text-2xl md:text-3xl">Folkets vy</h2>
           <button id="confirm-ranking" class="bg-primary text-on-primary px-6 py-3 rounded-full font-headline font-black uppercase sticker-shadow hover:translate-y-1 active:translate-y-1 transition-all">Bekräfta</button>
         </div>
-        <p class="text-on-surface-variant font-medium mb-4">Dra frukterna upp eller ner för att ranka dem. Den här vyn är enbart till för sortering.</p>
-        <ol id="people-ranking-list" class="space-y-2"></ol>
+        <p id="people-view-subtitle" class="text-on-surface-variant font-medium mb-4">Dra frukterna upp eller ner för att ranka dem. Den här vyn är enbart till för sortering.</p>
+
+        <ol id="people-ranking-list" class="space-y-2 mb-6"></ol>
+
+        <div id="results-stats" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6"></div>
+
+        <div id="ranking-change-summary" class="hidden mb-6 bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-4"></div>
+
+        <div id="differences-summary" class="hidden mb-6 bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-4"></div>
+
+        <div id="results-table-wrap" class="hidden overflow-x-auto border-2 border-[#1a1a1a] rounded-xl">
+          <table class="min-w-full text-sm">
+            <thead class="bg-surface-container-high">
+              <tr class="text-left">
+                <th class="p-3 font-headline font-bold">#</th>
+                <th class="p-3 font-headline font-bold">Frukt</th>
+                <th class="p-3 font-headline font-bold">Snittplacering</th>
+                <th class="p-3 font-headline font-bold">Din placering</th>
+                <th class="p-3 font-headline font-bold">Skillnad</th>
+                <th class="p-3 font-headline font-bold">Efter din röst</th>
+              </tr>
+            </thead>
+            <tbody id="results-table-body"></tbody>
+          </table>
+        </div>
         <div class="mt-6 p-4 bg-surface-container border-2 border-[#1a1a1a] rounded-xl">
           <h3 class="font-headline font-bold text-lg">Nuvarande folk-snitt</h3>
           <p id="people-average-summary" class="text-sm text-on-surface-variant mt-1">Inga röster sparade ännu.</p>
@@ -563,20 +586,14 @@
   <script>
     const fruitCards = document.querySelectorAll('.fruit-card');
     const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-
-    function closeAllBubbles() {
-      fruitCards.forEach(card => card.classList.remove('is-open'));
-    }
-
+    function closeAllBubbles() { fruitCards.forEach(card => card.classList.remove('is-open')); }
     if (isTouchDevice) {
-      fruitCards.forEach(card => {
-        card.addEventListener('click', function (e) {
-          e.stopPropagation();
-          const wasOpen = card.classList.contains('is-open');
-          closeAllBubbles();
-          if (!wasOpen) card.classList.add('is-open');
-        });
-      });
+      fruitCards.forEach(card => card.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const wasOpen = card.classList.contains('is-open');
+        closeAllBubbles();
+        if (!wasOpen) card.classList.add('is-open');
+      }));
       document.addEventListener('click', closeAllBubbles);
     }
 
@@ -587,6 +604,13 @@
     const rankingList = document.getElementById('people-ranking-list');
     const confirmRankingBtn = document.getElementById('confirm-ranking');
     const peopleAverageSummary = document.getElementById('people-average-summary');
+    const peopleViewTitle = document.getElementById('people-view-title');
+    const peopleViewSubtitle = document.getElementById('people-view-subtitle');
+    const resultsStats = document.getElementById('results-stats');
+    const rankingChangeSummary = document.getElementById('ranking-change-summary');
+    const differencesSummary = document.getElementById('differences-summary');
+    const resultsTableWrap = document.getElementById('results-table-wrap');
+    const resultsTableBody = document.getElementById('results-table-body');
 
     const fruits = [
       ['Vindruvor', '🍇'], ['Vattenmelon', '🍉'], ['Banan', '🍌'], ['Körsbär', '🍒'], ['Kiwi', '🥝'],
@@ -594,6 +618,9 @@
       ['Passionsfrukt', '🟣'], ['Granatäpple', '💣'], ['Äpple', '🍏'], ['Päron', '🍐'], ['Grapefrukt', '🍊'],
       ['Ananas', '🍍'], ['Kokosnöt', '🥥'], ['Plommon', '🍑'], ['Apelsin', '🍊'], ['Physalis', '?']
     ];
+    const fruitLookup = Object.fromEntries(fruits);
+    const VOTE_KEY = 'fruitVotesV2';
+    const VOTED_KEY = 'fruitHasVoted';
 
     function setView(view) {
       const people = view === 'people';
@@ -604,17 +631,141 @@
       closeAllBubbles();
     }
 
-    function buildList(items) {
+    function buildList(items, locked=false) {
       rankingList.innerHTML = '';
-      items.forEach(item => {
+      items.forEach(name => {
         const li = document.createElement('li');
-        li.draggable = true;
-        li.dataset.name = item[0];
-        li.dataset.emoji = item[1];
-        li.className = 'bg-white border-2 border-[#1a1a1a] rounded-xl p-3 flex items-center justify-between cursor-move';
-        li.innerHTML = `<span class="font-bold">${item[1]} ${item[0]}</span><span class="text-xs uppercase font-black tracking-widest">Dra</span>`;
+        li.draggable = !locked;
+        li.dataset.name = name;
+        li.className = `${locked ? 'bg-surface-container text-on-surface-variant border-dashed cursor-default' : 'bg-white cursor-move'} border-2 border-[#1a1a1a] rounded-xl p-3 flex items-center justify-between`;
+        li.innerHTML = `<span class="font-bold">${fruitLookup[name] || '🍎'} ${name}</span><span class="text-xs uppercase font-black tracking-widest">${locked ? 'Resultat' : 'Dra'}</span>`;
         rankingList.appendChild(li);
       });
+    }
+
+    let dragged = null;
+    rankingList.addEventListener('dragstart', (e) => { if (hasVoted()) return; dragged = e.target.closest('li'); });
+    rankingList.addEventListener('dragover', (e) => {
+      if (hasVoted()) return;
+      e.preventDefault();
+      const after = [...rankingList.querySelectorAll('li')].find(li => e.clientY <= li.getBoundingClientRect().top + li.offsetHeight / 2);
+      if (!dragged) return;
+      if (!after) rankingList.appendChild(dragged);
+      else if (after !== dragged) rankingList.insertBefore(dragged, after);
+    });
+
+    const currentOrder = () => [...rankingList.querySelectorAll('li')].map(li => li.dataset.name);
+    const getVotes = () => JSON.parse(localStorage.getItem(VOTE_KEY) || '[]');
+    const hasVoted = () => localStorage.getItem(VOTED_KEY) === '1';
+
+    function calculateAggregate(votes) {
+      const totals = Object.fromEntries(fruits.map(([name]) => [name, { sum: 0, count: 0, values: [] }]));
+      votes.forEach(v => v.forEach((name, i) => {
+        if (!totals[name]) return;
+        const pos = i + 1;
+        totals[name].sum += pos; totals[name].count += 1; totals[name].values.push(pos);
+      }));
+      return Object.entries(totals).map(([name, t]) => {
+        const avg = t.count ? t.sum / t.count : fruits.length;
+        const variance = t.values.length ? t.values.reduce((acc, val) => acc + (val - avg) ** 2, 0) / t.values.length : 0;
+        return { name, avg, variance };
+      }).sort((a,b) => a.avg - b.avg);
+    }
+
+    function renderAverage(aggregate, voteCount) {
+      const top3 = aggregate.slice(0,3).map(f => f.name).join(', ');
+      peopleAverageSummary.textContent = voteCount ? `Baserat på ${voteCount} röster. Topp 3: ${top3}.` : 'Inga röster sparade ännu.';
+    }
+
+    function renderResultMode(aggregate, myVote, beforeAggregate) {
+      peopleViewTitle.textContent = 'Folkets resultat';
+      peopleViewSubtitle.textContent = 'Din röst är inräknad i resultatet.';
+      confirmRankingBtn.classList.add('hidden');
+      buildList(aggregate.map(f => f.name), true);
+
+      resultsStats.classList.remove('hidden');
+      rankingChangeSummary.classList.remove('hidden');
+      differencesSummary.classList.remove('hidden');
+      resultsTableWrap.classList.remove('hidden');
+
+      const myMap = Object.fromEntries(myVote.map((name, i) => [name, i+1]));
+      const popMap = Object.fromEntries(aggregate.map((f, i) => [f.name, i+1]));
+      const mostLoved = aggregate[0]?.name;
+      const mostHated = aggregate[aggregate.length - 1]?.name;
+      const controversial = [...aggregate].sort((a,b)=>b.variance-a.variance)[0]?.name;
+      const match = Math.round((aggregate.length - aggregate.reduce((acc,f,i)=>acc + Math.abs((myMap[f.name]||aggregate.length)-(i+1)),0)/aggregate.length)/aggregate.length*100);
+      const unique = [...aggregate].sort((a,b)=>Math.abs((myMap[b.name]||0)-popMap[b.name]) - Math.abs((myMap[a.name]||0)-popMap[a.name]))[0];
+
+      let impacted = '—';
+      if (beforeAggregate?.length) {
+        const before = Object.fromEntries(beforeAggregate.map((f, i)=>[f.name, i+1]));
+        impacted = [...aggregate].sort((a,b)=>Math.abs((before[b.name]||0)-popMap[b.name]) - Math.abs((before[a.name]||0)-popMap[a.name]))[0]?.name || '—';
+      }
+
+      const statCards = [
+        ['Din matchning', `${match}%`],
+        ['Mest älskad', mostLoved],
+        ['Mest hatad', mostHated],
+        ['Mest kontroversiell', controversial],
+        ['Din mest unika åsikt', unique?.name || '—'],
+        ['Du påverkade mest', impacted],
+        ['Antal röster', String(getVotes().length)]
+      ];
+      resultsStats.innerHTML = statCards.map(([k,v]) => `<div class="bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-3"><div class="text-xs uppercase font-black opacity-70">${k}</div><div class="font-headline font-bold mt-1">${v}</div></div>`).join('');
+
+      const diffRows = aggregate.map((f, i) => {
+        const myPos = myMap[f.name];
+        const delta = myPos - (i+1);
+        const diffText = delta < 0 ? `Du rankade ${f.name} ${Math.abs(delta)} placeringar högre än folket.` : delta > 0 ? `Du rankade ${f.name} ${delta} placeringar lägre än folket.` : null;
+        return {name:f.name, text: diffText, abs: Math.abs(delta)};
+      }).filter(r=>r.text).sort((a,b)=>b.abs-a.abs);
+      differencesSummary.innerHTML = `<h3 class="font-headline font-bold text-lg mb-2">Du vs folket</h3><ul class="list-disc pl-5 space-y-1">${diffRows.slice(0,5).map(r=>`<li>${r.text}</li>`).join('')}</ul>`;
+
+      if (beforeAggregate?.length) {
+        const beforePos = Object.fromEntries(beforeAggregate.map((f,i)=>[f.name,i+1]));
+        const changes = aggregate.map((f,i)=>({name:f.name, delta:(beforePos[f.name]||i+1)-(i+1)}));
+        rankingChangeSummary.innerHTML = `<h3 class="font-headline font-bold text-lg mb-2">Förändring efter din röst</h3><ul class="list-disc pl-5 space-y-1">${changes.filter(c=>c.delta!==0).slice(0,5).map(c=>`<li>${c.name} ${c.delta>0?'↑':'↓'} ${Math.abs(c.delta)} placeringar</li>`).join('') || '<li>Inga placeringar ändrades.</li>'}</ul>`;
+
+        const beforeRank = Object.fromEntries(beforeAggregate.map((f,i)=>[f.name,i+1]));
+        resultsTableBody.innerHTML = aggregate.map((f,i)=>{
+          const myPos = myMap[f.name];
+          const diff = myPos - (i+1);
+          const ch = (beforeRank[f.name]||i+1)-(i+1);
+          const badge = ch>0?'↑':ch<0?'↓':'–';
+          return `<tr class="border-t border-outline-variant"><td class="p-3">${i+1}</td><td class="p-3">${fruitLookup[f.name]||'🍎'} ${f.name}</td><td class="p-3">${f.avg.toFixed(2)}</td><td class="p-3">${myPos}</td><td class="p-3">${diff===0?'0':diff}</td><td class="p-3">${badge} ${Math.abs(ch)}</td></tr>`;
+        }).join('');
+      }
+    }
+
+    confirmRankingBtn.addEventListener('click', () => {
+      if (hasVoted()) return;
+      const vote = currentOrder();
+      const votesBefore = getVotes();
+      const beforeAggregate = calculateAggregate(votesBefore);
+      const votes = [...votesBefore, vote];
+      localStorage.setItem(VOTE_KEY, JSON.stringify(votes));
+      localStorage.setItem(VOTED_KEY, '1');
+      localStorage.setItem('fruitMyVote', JSON.stringify(vote));
+
+      const aggregate = calculateAggregate(votes);
+      renderAverage(aggregate, votes.length);
+      renderResultMode(aggregate, vote, beforeAggregate);
+    });
+
+    objectiveViewBtn.addEventListener('click', () => setView('objective'));
+    peopleViewBtn.addEventListener('click', () => setView('people'));
+
+    const votes = getVotes();
+    const myVote = JSON.parse(localStorage.getItem('fruitMyVote') || 'null');
+    const aggregate = calculateAggregate(votes);
+    if (hasVoted() && myVote && votes.length) {
+      renderAverage(aggregate, votes.length);
+      renderResultMode(aggregate, myVote, null);
+      setView('people');
+    } else {
+      buildList(fruits.map(([name]) => name));
+      renderAverage(aggregate, votes.length);
+      setView('objective');
     }
 
     let dragged = null;
