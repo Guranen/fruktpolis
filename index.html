@@ -266,7 +266,6 @@
             <tbody id="results-table-body"></tbody>
           </table>
         </div>
-
         <div class="mt-6 p-4 bg-surface-container border-2 border-[#1a1a1a] rounded-xl">
           <h3 class="font-headline font-bold text-lg">Nuvarande folk-snitt</h3>
           <p id="people-average-summary" class="text-sm text-on-surface-variant mt-1">Inga röster sparade ännu.</p>
@@ -587,7 +586,6 @@
   <script>
     const fruitCards = document.querySelectorAll('.fruit-card');
     const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
-
     function closeAllBubbles() { fruitCards.forEach(card => card.classList.remove('is-open')); }
     if (isTouchDevice) {
       fruitCards.forEach(card => card.addEventListener('click', function (e) {
@@ -769,6 +767,57 @@
       renderAverage(aggregate, votes.length);
       setView('objective');
     }
+
+    let dragged = null;
+    rankingList.addEventListener('dragstart', (e) => { dragged = e.target.closest('li'); });
+    rankingList.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const after = [...rankingList.querySelectorAll('li')].find(li => e.clientY <= li.getBoundingClientRect().top + li.offsetHeight / 2);
+      if (!dragged) return;
+      if (!after) rankingList.appendChild(dragged);
+      else if (after !== dragged) rankingList.insertBefore(dragged, after);
+    });
+
+    function currentOrder() {
+      return [...rankingList.querySelectorAll('li')].map(li => li.dataset.name);
+    }
+
+    function getVotes() {
+      return JSON.parse(localStorage.getItem('fruitVotes') || '[]');
+    }
+
+    function renderAverage() {
+      const votes = getVotes();
+      if (!votes.length) {
+        peopleAverageSummary.textContent = 'Inga röster sparade ännu.';
+        return;
+      }
+      const totals = Object.fromEntries(fruits.map(([name]) => [name, { sum: 0, count: 0 }]));
+      votes.forEach(vote => vote.forEach((name, idx) => { if (totals[name]) { totals[name].sum += idx + 1; totals[name].count += 1; } }));
+      const avg = Object.entries(totals).map(([name, data]) => ({ name, avg: data.sum / data.count })).sort((a, b) => a.avg - b.avg);
+      peopleAverageSummary.textContent = `Baserat på ${votes.length} röster. Topp 3 just nu: ${avg.slice(0, 3).map(item => item.name).join(', ')}.`;
+    }
+
+    confirmRankingBtn.addEventListener('click', async () => {
+      const votes = getVotes();
+      const vote = currentOrder();
+      votes.push(vote);
+      localStorage.setItem('fruitVotes', JSON.stringify(votes));
+
+      // Om ni vill spara globalt kan ni lägga en enkel endpoint här, t.ex. Cloudflare Worker / Supabase / GitHub Action webhook.
+      // await fetch('https://example.com/api/votes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({vote}) });
+
+      renderAverage();
+      confirmRankingBtn.textContent = 'Sparat!';
+      setTimeout(() => confirmRankingBtn.textContent = 'Bekräfta', 1200);
+    });
+
+    objectiveViewBtn.addEventListener('click', () => setView('objective'));
+    peopleViewBtn.addEventListener('click', () => setView('people'));
+
+    buildList(fruits);
+    renderAverage();
+    setView('objective');
   </script>
 </body>
 </html>
