@@ -679,9 +679,9 @@
 
     function renderResultMode(aggregate, myVote, beforeAggregate) {
       peopleViewTitle.textContent = 'Folkets resultat';
-      peopleViewSubtitle.textContent = 'Din röst är inräknad i resultatet.';
+      peopleViewSubtitle.textContent = 'Här är statistiken baserat på folkets röster.';
       confirmRankingBtn.classList.add('hidden');
-      buildList(aggregate.map(f => f.name), true);
+      rankingList.classList.add('hidden');
 
       resultsStats.classList.remove('hidden');
       rankingChangeSummary.classList.remove('hidden');
@@ -711,7 +711,16 @@
         ['Du påverkade mest', impacted],
         ['Antal röster', String(getVotes().length)]
       ];
-      resultsStats.innerHTML = statCards.map(([k,v]) => `<div class="bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-3"><div class="text-xs uppercase font-black opacity-70">${k}</div><div class="font-headline font-bold mt-1">${v}</div></div>`).join('');
+      const statTooltips = {
+        'Din matchning': 'Hur nära din ranking är folkets ranking totalt sett. Högre procent betyder att du rankar mer likt snittet.',
+        'Mest älskad': 'Frukten med bäst snittplacering (lägst genomsnittlig platsnummer).',
+        'Mest hatad': 'Frukten med sämst snittplacering (högst genomsnittlig platsnummer).',
+        'Mest kontroversiell': 'Frukten med störst spridning i placeringar mellan olika röster.',
+        'Din mest unika åsikt': 'Frukten där din placering skiljer sig mest från folkets nuvarande placering.',
+        'Du påverkade mest': 'Frukten vars placering ändrades mest efter att din röst lades till.',
+        'Antal röster': 'Totalt antal inskickade rankinglistor som statistiken bygger på.'
+      };
+      resultsStats.innerHTML = statCards.map(([k,v]) => `<div class="bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-3"><div class="text-xs uppercase font-black opacity-70"><span class="cursor-help underline decoration-dotted" title="${statTooltips[k]}">${k}</span></div><div class="font-headline font-bold mt-1">${v}</div></div>`).join('');
 
       const diffRows = aggregate.map((f, i) => {
         const myPos = myMap[f.name];
@@ -763,6 +772,7 @@
       renderResultMode(aggregate, myVote, null);
       setView('people');
     } else {
+      rankingList.classList.remove('hidden');
       buildList(fruits.map(([name]) => name));
       renderAverage(aggregate, votes.length);
       setView('objective');
