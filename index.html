@@ -619,6 +619,692 @@
       ['Ananas', '🍍'], ['Kokosnöt', '🥥'], ['Plommon', '🍑'], ['Apelsin', '🍊'], ['Physalis', '?']
     ];
     const fruitLookup = Object.fromEntries(fruits);
+    const VOTER_ID_KEY = 'fruitpolisVoterId';
+    const VOTED_KEY = 'fruitpolisHasVoted';
+    const MY_VOTE_KEY = 'fruitpolisMyVote';
+
+    function setView(view) {
+      const people = view === 'people';
+      peopleView.classList.toggle('hidden', !people);
+      objectiveView.classList.toggle('hidden', people);
+      objectiveViewBtn.className = `px-5 py-2 font-headline font-black ${people ? 'bg-surface-container-lowest' : 'bg-primary text-on-primary'}`;
+      peopleViewBtn.className = `px-5 py-2 font-headline font-black ${people ? 'bg-primary text-on-primary' : 'bg-surface-container-lowest'}`;
+      closeAllBubbles();
+    }
+
+    function getOrCreateVoterId() {
+      const existing = localStorage.getItem(VOTER_ID_KEY);
+      if (existing) return existing;
+      const voterId = `voter_${Date.now()}_${crypto.randomUUID()}`;
+      localStorage.setItem(VOTER_ID_KEY, voterId);
+      return voterId;
+    }
+
+    function hasVoted() { return localStorage.getItem(VOTED_KEY) === '1'; }
+    function currentOrder() { return [...rankingList.querySelectorAll('li')].map(li => li.dataset.name); }
+
+    function showError(message) {
+      peopleAverageSummary.textContent = message;
+      peopleAverageSummary.classList.add('text-error');
+    }
+
+    function buildList(items, locked=false) {
+      rankingList.innerHTML = '';
+      items.forEach((name, index) => {
+        const li = document.createElement('li');
+        li.draggable = !locked;
+        li.dataset.name = name;
+        li.className = `${locked ? 'bg-surface-container text-on-surface-variant border-dashed cursor-default' : 'bg-white cursor-move'} border-2 border-[#1a1a1a] rounded-xl p-3 flex items-center justify-between`;
+        li.innerHTML = `<span class="font-bold">${index + 1}. ${fruitLookup[name] || '🍎'} ${name}</span><span class="text-xs uppercase font-black tracking-widest">${locked ? 'Låst' : 'Dra'}</span>`;
+        rankingList.appendChild(li);
+      });
+    }
+
+    let dragged = null;
+    rankingList.addEventListener('dragstart', (e) => { if (hasVoted()) return; dragged = e.target.closest('li'); });
+    rankingList.addEventListener('dragover', (e) => {
+      if (hasVoted()) return;
+      e.preventDefault();
+      const after = [...rankingList.querySelectorAll('li')].find(li => e.clientY <= li.getBoundingClientRect().top + li.offsetHeight / 2);
+      if (!dragged) return;
+      if (!after) rankingList.appendChild(dragged);
+      else if (after !== dragged) rankingList.insertBefore(dragged, after);
+    });
+
+    function renderAverage(sortedResults, voteCount) {
+      if (!voteCount) {
+        peopleAverageSummary.textContent = 'Inga röster sparade ännu.';
+        return;
+      }
+      const top3 = sortedResults.slice(0,3).map(f => `${f.fruitName} (${f.averageRank.toFixed(2)})`).join(', ');
+      peopleAverageSummary.textContent = `Baserat på ${voteCount} röster. Topp 3: ${top3}.`;
+    }
+
+    function renderResultMode(sortedResults, totalVotes, isAlreadyVoted=false) {
+      peopleViewTitle.textContent = 'Folkets resultat';
+      peopleViewSubtitle.textContent = isAlreadyVoted
+        ? 'Du har redan röstat. Visar folkets senaste genomsnittliga ranking.'
+        : 'Tack! Din röst är sparad. Här är folkets genomsnittliga ranking.';
+
+      confirmRankingBtn.classList.add('hidden');
+      rankingList.classList.remove('hidden');
+      resultsStats.classList.remove('hidden');
+      rankingChangeSummary.classList.add('hidden');
+      differencesSummary.classList.add('hidden');
+      resultsTableWrap.classList.add('hidden');
+
+      buildList(sortedResults.map(r => r.fruitName), true);
+      renderAverage(sortedResults, totalVotes);
+
+      const mostLoved = sortedResults[0]?.fruitName || '—';
+      const mostHated = sortedResults[sortedResults.length - 1]?.fruitName || '—';
+      resultsStats.innerHTML = [
+        ['Antal röster', String(totalVotes)],
+        ['Mest älskad', mostLoved],
+        ['Mest hatad', mostHated]
+      ].map(([k,v]) => `<div class="bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-3"><div class="text-xs uppercase font-black opacity-70">${k}</div><div class="font-headline font-bold mt-1">${v}</div></div>`).join('');
+    }
+
+    async function fetchResults() {
+      const res = await fetch('/.netlify/functions/get-results');
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Kunde inte hämta resultat.');
+      return data;
+    }
+
+    async function submitVote(vote) {
+      const res = await fetch('/.netlify/functions/submit-vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voter_id: getOrCreateVoterId(), ranking: vote })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Kunde inte spara röst.');
+      return data;
+    }
+
+    confirmRankingBtn.addEventListener('click', async () => {
+      if (hasVoted()) return;
+      confirmRankingBtn.disabled = true;
+      confirmRankingBtn.textContent = 'Sparar...';
+      try {
+        const vote = currentOrder();
+        const data = await submitVote(vote);
+        localStorage.setItem(VOTED_KEY, '1');
+        localStorage.setItem(MY_VOTE_KEY, JSON.stringify(vote));
+        renderResultMode(data.sortedResults, data.totalVotes, false);
+      } catch (error) {
+        showError(`Fel vid röstning: ${error.message}`);
+      } finally {
+        confirmRankingBtn.disabled = false;
+        confirmRankingBtn.textContent = 'Bekräfta';
+      }
+    });
+
+    objectiveViewBtn.addEventListener('click', () => setView('objective'));
+    peopleViewBtn.addEventListener('click', () => setView('people'));
+
+    (async function initPeopleView() {
+      getOrCreateVoterId();
+      buildList(fruits.map(([name]) => name));
+      setView('objective');
+
+      if (hasVoted()) {
+        try {
+          const data = await fetchResults();
+          renderResultMode(data.sortedResults, data.totalVotes, true);
+          setView('people');
+        } catch (error) {
+          showError(`Kunde inte läsa tidigare resultat: ${error.message}`);
+        }
+        return;
+      }
+
+      try {
+        const data = await fetchResults();
+        renderAverage(data.sortedResults, data.totalVotes);
+      } catch (error) {
+        showError(`Kunde inte hämta startsnitt: ${error.message}`);
+      }
+    })();
+  </script>
+
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .sticker-shadow {
+      box-shadow: 4px 4px 0px 0px rgba(26, 26, 26, 1);
+    }
+
+    .tier-row:hover {
+      transform: scale(1.001);
+    }
+
+    .wobble-shape {
+      border-radius: 1.8rem 2.2rem 2rem 2.1rem;
+    }
+
+    .comic-bubble {
+      position: absolute;
+      bottom: calc(100% + 14px);
+      left: 50%;
+      transform: translateX(-50%) rotate(-1deg);
+      background: #fffdf5;
+      border: 3px solid #1a1a1a;
+      border-radius: 1.25rem;
+      padding: 1.25rem;
+      width: 280px;
+      max-width: calc(100vw - 24px);
+      z-index: 50;
+      box-shadow: 8px 8px 0px 0px rgba(26, 26, 26, 0.1);
+      display: none;
+      pointer-events: none;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      text-align: left;
+    }
+
+    .comic-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 12px solid #1a1a1a;
+    }
+
+    .comic-bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 10px solid #fffdf5;
+      z-index: 1;
+    }
+
+    @keyframes bubble-pop-desktop {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0.9) rotate(1deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) scale(1) rotate(-1deg);
+      }
+    }
+
+    @keyframes bubble-pop-mobile {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9) rotate(1deg);
+      }
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1) rotate(-1deg);
+      }
+    }
+
+    /* Desktop: hover */
+    @media (hover: hover) and (pointer: fine) {
+      .fruit-card:hover .comic-bubble {
+        display: block;
+        animation: bubble-pop-desktop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+    }
+
+    /* Touch: klick */
+    .fruit-card.is-open .comic-bubble {
+      display: block;
+    }
+
+    /* Mobil: behåll pratbubbla men centrera den i viewporten */
+    @media (max-width: 767px) {
+      .fruit-card.is-open .comic-bubble {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        bottom: auto;
+        width: min(320px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+        max-height: calc(100vh - 32px);
+        overflow-y: auto;
+        transform: translate(-50%, -50%) rotate(-1deg);
+        z-index: 9999;
+        pointer-events: auto;
+        animation: bubble-pop-mobile 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+      }
+
+      /* Dölj svansen på mobil när bubblan ligger mitt på skärmen */
+      .fruit-card.is-open .comic-bubble::after,
+      .fruit-card.is-open .comic-bubble::before {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-surface font-body text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+  <main class="pt-8 md:pt-12 pb-16 px-4 md:px-6 max-w-6xl mx-auto min-h-screen">
+
+    <section class="mb-10 md:mb-12 text-center flex flex-col items-center">
+      <div class="bg-primary-container inline-block px-4 py-1.5 md:px-6 md:py-2 rounded-full border-2 border-primary sticker-shadow -rotate-1 mb-4 md:mb-6">
+        <span class="font-headline font-extrabold text-primary text-sm md:text-lg uppercase tracking-widest">Fruktpolis</span>
+      </div>
+
+      <h1 class="font-headline font-black text-3xl sm:text-4xl md:text-7xl text-on-surface mb-4 tracking-tight leading-tight md:leading-none">
+        Den&nbsp;<span class="text-primary underline decoration-[4px] md:decoration-[8px] decoration-primary-container">objektiva</span>&nbsp;fruktlistan
+      </h1>
+
+      <p class="text-lg md:text-xl text-on-surface-variant max-w-2xl font-medium px-2">
+        Rankat utifrån fakta och vetenskapliga formler som:
+        <span class="block">(smak x volym) / arbetsinsats</span>
+      </p>
+    </section>
+
+
+    <section class="mb-8 flex flex-col items-center gap-4">
+      <div class="inline-flex rounded-full border-4 border-[#1a1a1a] sticker-shadow overflow-hidden">
+        <button id="objective-view-btn" class="px-5 py-2 font-headline font-black bg-primary text-on-primary">Objektiv vy</button>
+        <button id="people-view-btn" class="px-5 py-2 font-headline font-black bg-surface-container-lowest">Folkets vy</button>
+      </div>
+    </section>
+
+    <section id="people-view" class="hidden mb-10">
+      <div class="max-w-5xl mx-auto bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl p-5 md:p-7 sticker-shadow">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+          <h2 id="people-view-title" class="font-headline font-black text-2xl md:text-3xl">Folkets vy</h2>
+          <button id="confirm-ranking" class="bg-primary text-on-primary px-6 py-3 rounded-full font-headline font-black uppercase sticker-shadow hover:translate-y-1 active:translate-y-1 transition-all">Bekräfta</button>
+        </div>
+        <p id="people-view-subtitle" class="text-on-surface-variant font-medium mb-4">Dra frukterna upp eller ner för att ranka dem. Den här vyn är enbart till för sortering.</p>
+
+        <ol id="people-ranking-list" class="space-y-2 mb-6"></ol>
+
+        <div id="results-stats" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6"></div>
+
+        <div id="ranking-change-summary" class="hidden mb-6 bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-4"></div>
+
+        <div id="differences-summary" class="hidden mb-6 bg-surface-container border-2 border-[#1a1a1a] rounded-xl p-4"></div>
+
+        <div id="results-table-wrap" class="hidden overflow-x-auto border-2 border-[#1a1a1a] rounded-xl">
+          <table class="min-w-full text-sm">
+            <thead class="bg-surface-container-high">
+              <tr class="text-left">
+                <th class="p-3 font-headline font-bold">#</th>
+                <th class="p-3 font-headline font-bold">Frukt</th>
+                <th class="p-3 font-headline font-bold">Snittplacering</th>
+                <th class="p-3 font-headline font-bold">Din placering</th>
+                <th class="p-3 font-headline font-bold">Skillnad</th>
+                <th class="p-3 font-headline font-bold">Efter din röst</th>
+              </tr>
+            </thead>
+            <tbody id="results-table-body"></tbody>
+          </table>
+        </div>
+        <div class="mt-6 p-4 bg-surface-container border-2 border-[#1a1a1a] rounded-xl">
+          <h3 class="font-headline font-bold text-lg">Nuvarande folk-snitt</h3>
+          <p id="people-average-summary" class="text-sm text-on-surface-variant mt-1">Inga röster sparade ännu.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="objective-view">
+    <div class="space-y-4 md:space-y-6">
+      <!-- TIER S -->
+      <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
+        <div class="w-full md:w-32 h-16 md:h-auto flex items-center justify-center bg-error-container border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+          <span class="font-headline font-black text-4xl md:text-6xl text-[#1a1a1a]">S</span>
+        </div>
+
+        <div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-3 md:p-4 flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start">
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-primary uppercase text-lg mb-1">Fruktens drottning</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Supergott! Man får mycket vindruvor för väldigt lite jobb. Det räcker att skölja dem, och särskilt röda vindruvor är en självklar S-tier.</p>
+            </div>
+            <div class="flex flex-col items-center bg-tertiary-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-3">
+              <span class="text-4xl md:text-5xl mb-1">🍇</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Vindruvor</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-error uppercase text-lg mb-1">Fruktens gud</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Det kan se ut som en frukt som kräver mycket arbete, men volymen man får väger upp det. En god vattenmelon är oslagbar, men en dålig är inte rolig. You win some, you lose some. När den är bra är den S-tier, men det värsta är besvikelsen när man förväntar sig något fantastiskt och får något dåligt istället.</p>
+            </div>
+            <div class="flex flex-col items-center bg-error-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-3">
+              <span class="text-4xl md:text-5xl mb-1">🍉</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Vattenmelon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER A -->
+      <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
+        <div class="w-full md:w-32 h-16 md:h-auto flex items-center justify-center bg-secondary-container border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+          <span class="font-headline font-black text-4xl md:text-6xl text-[#1a1a1a]">A</span>
+        </div>
+
+        <div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-3 md:p-4 flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start">
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-[#fbc02d] uppercase text-lg mb-1">Stabil</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Bananen är, likt äpplet, en smidig och enkel frukt med naturligt skydd, så den är lätt att ta med utan att bli smutsig. Tyvärr hamnar den inte i topp. Den blir snabbt övermogen, och en dålig banan är inte särskilt trevlig.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#fff176] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-2">
+              <span class="text-4xl md:text-5xl mb-1">🍌</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Banan</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-error uppercase text-lg mb-1">Värt magbesväret</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Otroligt god. Kan bli tuff för magen i stora mängder (vilket alltid händer), är ganska dyr och lite mekig eftersom man måste skölja och spotta ut kärnor (lite charmen med frukten dock), men smaken gör att den förtjänar A alla dagar i veckan.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#ff4d4d] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-4">
+              <span class="text-4xl md:text-5xl mb-1">🍒</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Körsbär</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-primary-fixed-dim uppercase text-lg mb-1">Den underskattade</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Gott. Den kan stickas lite på tungan, och skalet är bra för tarmfloran. En riktig superfrukt, kiwi är underskattad.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#c5e1a5] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-6">
+              <span class="text-4xl md:text-5xl mb-1">🥝</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Kiwi</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-secondary-dim uppercase text-lg mb-1">Tre som blir en</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Samma klass som banan, de har ett skydd så man kan stoppa dem var som helst. Fördelen är att de inte blir dåliga lika snabbt, men de klättrar inte högre än banan eftersom det är tre frukter som är totalt identiska vilket är störigt.</p>
+            </div>
+            <div class="flex flex-col items-center bg-secondary-fixed border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-2">
+              <span class="text-4xl md:text-5xl mb-1">🍊</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center leading-tight">Mandarin Clementin Satsuma</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-primary uppercase text-lg mb-1">God</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Mycket jobb men smaken räddar allt. Man accepterar läget.</p>
+            </div>
+            <div class="flex flex-col items-center bg-secondary-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-4">
+              <span class="text-4xl md:text-5xl mb-1">🥭</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Mango</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-primary-dim uppercase text-lg mb-1">Den blekare kusinen</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Som vattenmelon fast sämre.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#e8f5e9] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-1">
+              <span class="text-4xl md:text-5xl mb-1">🍈</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Honungsmelon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER B -->
+      <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
+        <div class="w-full md:w-32 h-16 md:h-auto flex items-center justify-center bg-[#eef27a] border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+          <span class="font-headline font-black text-4xl md:text-6xl text-[#1a1a1a]">B</span>
+        </div>
+
+        <div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-3 md:p-4 flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start">
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-secondary uppercase text-lg mb-1">Hårig, hårig, flint</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Gott, men för kladdigt. De är inte identiska, men ganska lika – skillnaden är främst att nektarin inte är hårig. Nektarin är nog den sämsta av dem, men det är subjektivt – och den här listan är helt objektiv.</p>
+            </div>
+            <div class="flex flex-col items-center bg-secondary-fixed border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-2">
+              <span class="text-4xl md:text-5xl mb-1">🍑</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Aprikos Persika Nektarin</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-tertiary-dim uppercase text-lg mb-1">För lite för mödan</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Det är verkligen ingen dålig frukt och den växer på en ju mer man äter den. Jag har nog inte ätit den tillräckligt många gånger, och den ger lite för lite volym i förhållande till arbetet.</p>
+            </div>
+            <div class="flex flex-col items-center bg-tertiary-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-3">
+              <span class="text-4xl md:text-5xl mb-1">🟣</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Passionsfrukt</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-error-dim uppercase text-lg mb-1">Kunde vart S-tier</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Granatäpple är en av de godaste, men det är såååååååååå meckigt.</p>
+            </div>
+            <div class="flex flex-col items-center bg-error-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-4">
+              <span class="text-4xl md:text-5xl mb-1">💣</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center leading-tight">Granatäpple</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER C -->
+      <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
+        <div class="w-full md:w-32 h-16 md:h-auto flex items-center justify-center bg-[#7cf173] border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+          <span class="font-headline font-black text-4xl md:text-6xl text-[#1a1a1a]">C</span>
+        </div>
+
+        <div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-3 md:p-4 flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start">
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-primary-dim uppercase text-lg mb-1">Väldigt väldigt beige</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Helt okej, äpplen är ganska tråkiga i smaken, men flexibilitet väger upp det - kan ätas utan att behöva gör nåt med den. Smidig frukt.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#8bc34a] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-2">
+              <span class="text-4xl md:text-5xl mb-1">🍏</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Äpple</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-outline uppercase text-lg mb-1">På gränsen till svek</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Hit or miss. Ett hårt päron är jättegott: knaprigt och inte kladdig. Ett mjukt päron trycker man i sig mot sin vilja för att man är snål och vill inte slänga den.</p>
+            </div>
+            <div class="flex flex-col items-center bg-surface-container border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-3">
+              <span class="text-4xl md:text-5xl mb-1">🍐</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Päron</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-secondary-dim uppercase text-lg mb-1">Bantningskur</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Meh. God när man är sjuk, annars lite tveksam. Äts mest när man vill känna sig smal. En sån man äter till och från.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#ffccbc] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-5">
+              <span class="text-4xl md:text-5xl mb-1">🍊</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Grapefrukt</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER D -->
+      <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
+        <div class="w-full md:w-32 h-16 md:h-auto flex items-center justify-center bg-[#78dde3] border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+          <span class="font-headline font-black text-4xl md:text-6xl text-[#1a1a1a]">D</span>
+        </div>
+
+        <div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-3 md:p-4 flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start">
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-secondary uppercase text-lg mb-1">Går till angrepp</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Ja, man kan bli stickig på tungan av kiwi, men ananas är något helt annat. Bara man ser den börjar det klia i munnen. Ananasjuice är däremot gott.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#ffea00] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-12">
+              <span class="text-4xl md:text-5xl mb-1">🍍</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Ananas</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER E -->
+      <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
+        <div class="w-full md:w-32 h-16 md:h-auto flex items-center justify-center bg-[#7f7bf2] border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+          <span class="font-headline font-black text-4xl md:text-6xl text-[#1a1a1a]">E</span>
+        </div>
+
+        <div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-3 md:p-4 flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start">
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-on-surface-variant uppercase text-lg mb-1">Hämta verktygen</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Gott men kräver hammare.</p>
+            </div>
+            <div class="flex flex-col items-center bg-surface-container-high border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-3">
+              <span class="text-4xl md:text-5xl mb-1">🥥</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Kokosnöt</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-tertiary-dim uppercase text-lg mb-1">Helt ok</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Gott, men blir snabbt dåligt och man själv blir dålig i magen.</p>
+            </div>
+            <div class="flex flex-col items-center bg-tertiary-fixed-dim border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-4">
+              <span class="text-4xl md:text-5xl mb-1">🍑</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Plommon</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIER F -->
+      <div class="flex flex-col md:flex-row gap-3 md:gap-4 tier-row transition-transform duration-200">
+        <div class="w-full md:w-32 h-16 md:h-auto flex items-center justify-center bg-[#ea72e7] border-4 border-[#1a1a1a] rounded-xl sticker-shadow shrink-0">
+          <span class="font-headline font-black text-4xl md:text-6xl text-[#1a1a1a]">F</span>
+        </div>
+
+        <div class="flex-1 bg-surface-container-lowest border-4 border-[#1a1a1a] rounded-xl sticker-shadow p-3 md:p-4 flex flex-wrap gap-3 md:gap-4 items-center justify-center md:justify-start">
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-secondary-dim uppercase text-lg mb-1">Den överskattade</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Vart ska jag börja? Arbetsinsatsen är fullständigt orimlig i förhållande till belöningen. Den är god, absolut, men inte tillräckligt. Den ska skalas (det är ingen lek, det är som att någon har limmat dit skalet med alienlim), den kladdar, och ändå sitter det där vita kvar över hela frukten. Där någonstans slänger jag apelsinen i matavfallet och ger upp.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#ffb74d] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:rotate-4">
+              <span class="text-4xl md:text-5xl mb-1">🍊</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Apelsin</span>
+            </div>
+          </div>
+
+          <div class="relative group fruit-card cursor-pointer">
+            <div class="comic-bubble wobble-shape">
+              <h4 class="font-headline font-black text-secondary uppercase text-lg mb-1">Vad är det ens?</h4>
+              <p class="text-on-surface text-sm leading-relaxed font-medium">Den används mest som garnering på tårtor, och jag har aldrig sett någon annan äta den. När jag väl själv har testat den har den inte varit god.</p>
+            </div>
+            <div class="flex flex-col items-center bg-[#ffd54f] border-2 border-[#1a1a1a] rounded-3xl p-3 w-24 md:w-28 transition-all hover:-translate-y-2 hover:-rotate-8">
+              <span class="text-4xl md:text-5xl mb-1">?</span>
+              <span class="font-headline font-bold text-[9px] md:text-[10px] uppercase text-[#1a1a1a] text-center">Physalis</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </section>
+
+    <section class="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="md:col-span-2 bg-tertiary-container border-4 border-[#1a1a1a] rounded-xl p-6 md:p-8 sticker-shadow flex flex-col justify-between">
+        <div>
+          <h3 class="font-headline font-black text-2xl md:text-3xl mb-4 uppercase italic">Månadens dom</h3>
+          <p class="text-lg md:text-xl font-bold text-on-tertiary-container mb-6 italic leading-snug">Apelsin är god i teorin men ett administrativt haveri i praktiken.</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="bg-surface-container-lowest p-4 rounded-xl border-4 border-[#1a1a1a] sticker-shadow flex-1">
+            <span class="block font-headline font-black text-xl md:text-2xl">Nedflyttad till F-tier</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest opacity-70">Straff</span>
+          </div>
+
+          <div class="bg-surface-container-lowest p-4 rounded-xl border-4 border-[#1a1a1a] sticker-shadow flex-1">
+            <span class="block font-headline font-black text-xl md:text-2xl">Verkställd</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest opacity-70">Status</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-primary-container border-4 border-[#1a1a1a] rounded-xl p-6 md:p-8 sticker-shadow flex flex-col items-center justify-center text-center">
+        <span class="text-5xl md:text-7xl mb-4">🏆</span>
+        <h3 class="font-headline font-black text-xl md:text-2xl mb-2 uppercase">MVP FRUKT</h3>
+        <p class="font-bold text-on-primary-container text-md mb-4 md:mb-6">Vattenmelon vinner igen!</p>
+        <button
+  onclick="window.location.href='mailto:info@fruktpolis.se?subject=R%C3%B6st%20p%C3%A5%20Fruktpolis&body=Jag%20r%C3%B6star%20p%C3%A5%20'"
+  class="bg-primary text-on-primary px-6 py-3 rounded-full font-headline font-black text-sm md:text-md uppercase sticker-shadow hover:translate-y-1 active:translate-y-1 transition-all"
+>
+  Rösta här (mejla oss)
+</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fruitCards = document.querySelectorAll('.fruit-card');
+    const isTouchDevice = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+    function closeAllBubbles() { fruitCards.forEach(card => card.classList.remove('is-open')); }
+    if (isTouchDevice) {
+      fruitCards.forEach(card => card.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const wasOpen = card.classList.contains('is-open');
+        closeAllBubbles();
+        if (!wasOpen) card.classList.add('is-open');
+      }));
+      document.addEventListener('click', closeAllBubbles);
+    }
+
+    const objectiveView = document.getElementById('objective-view');
+    const peopleView = document.getElementById('people-view');
+    const objectiveViewBtn = document.getElementById('objective-view-btn');
+    const peopleViewBtn = document.getElementById('people-view-btn');
+    const rankingList = document.getElementById('people-ranking-list');
+    const confirmRankingBtn = document.getElementById('confirm-ranking');
+    const peopleAverageSummary = document.getElementById('people-average-summary');
+    const peopleViewTitle = document.getElementById('people-view-title');
+    const peopleViewSubtitle = document.getElementById('people-view-subtitle');
+    const resultsStats = document.getElementById('results-stats');
+    const rankingChangeSummary = document.getElementById('ranking-change-summary');
+    const differencesSummary = document.getElementById('differences-summary');
+    const resultsTableWrap = document.getElementById('results-table-wrap');
+    const resultsTableBody = document.getElementById('results-table-body');
+
+    const fruits = [
+      ['Vindruvor', '🍇'], ['Vattenmelon', '🍉'], ['Banan', '🍌'], ['Körsbär', '🍒'], ['Kiwi', '🥝'],
+      ['Mandarin Clementin Satsuma', '🍊'], ['Mango', '🥭'], ['Honungsmelon', '🍈'], ['Aprikos Persika Nektarin', '🍑'],
+      ['Passionsfrukt', '🟣'], ['Granatäpple', '💣'], ['Äpple', '🍏'], ['Päron', '🍐'], ['Grapefrukt', '🍊'],
+      ['Ananas', '🍍'], ['Kokosnöt', '🥥'], ['Plommon', '🍑'], ['Apelsin', '🍊'], ['Physalis', '?']
+    ];
+    const fruitLookup = Object.fromEntries(fruits);
     const VOTE_KEY = 'fruitVotesV2';
     const VOTED_KEY = 'fruitHasVoted';
 
