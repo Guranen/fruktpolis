@@ -696,7 +696,13 @@
       if (!handle || handle.disabled) return;
       const li = handle.closest('li');
       if (!li) return;
-      touchDrag = { pointerId: e.pointerId, li, startY: e.clientY, lastY: e.clientY };
+      const liRect = li.getBoundingClientRect();
+      touchDrag = {
+        pointerId: e.pointerId,
+        li,
+        pointerY: e.clientY,
+        grabOffsetY: e.clientY - liRect.top
+      };
       li.style.setProperty('--drag-offset', '0px');
       li.classList.add('is-dragging');
       handle.setPointerCapture(e.pointerId);
@@ -706,8 +712,10 @@
     rankingList.addEventListener('pointermove', (e) => {
       if (!touchDrag || e.pointerId !== touchDrag.pointerId || hasVoted()) return;
       e.preventDefault();
-      touchDrag.lastY = e.clientY;
-      const dragOffset = touchDrag.lastY - touchDrag.startY;
+      touchDrag.pointerY = e.clientY;
+      const currentTop = touchDrag.li.getBoundingClientRect().top;
+      const desiredTop = touchDrag.pointerY - touchDrag.grabOffsetY;
+      const dragOffset = desiredTop - currentTop;
       touchDrag.li.style.setProperty('--drag-offset', `${dragOffset}px`);
       const after = [...rankingList.querySelectorAll('li')].find(li => li !== touchDrag.li && e.clientY <= li.getBoundingClientRect().top + li.offsetHeight / 2);
       if (!after) rankingList.appendChild(touchDrag.li);
